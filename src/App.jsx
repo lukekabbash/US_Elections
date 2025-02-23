@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import ElectionMap from './components/Map/ElectionMap';
 import YearSelector from './components/YearSelector/YearSelector';
+import OfficeSelector from './components/OfficeSelector/OfficeSelector';
+import StateSelector from './components/StateSelector/StateSelector';
 import Legend from './components/Legend/Legend';
 import ResultsTable from './components/ResultsTable/ResultsTable';
 import StarIcon from './components/StarIcon';
@@ -8,14 +10,28 @@ import { parseCSV } from './utils/dataUtils';
 
 function App() {
   const [selectedYear, setSelectedYear] = useState(2020);
+  const [selectedOffice, setSelectedOffice] = useState('PRESIDENT');
+  const [selectedState, setSelectedState] = useState(null);
   const [electionData, setElectionData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Reset state when office changes
+  useEffect(() => {
+    setSelectedState(null);
+  }, [selectedOffice]);
+
   useEffect(() => {
     const loadData = async () => {
       try {
-        const response = await fetch('/1976-2020-president.csv');
+        setLoading(true);
+        const filename = selectedOffice === 'PRESIDENT' 
+          ? '1976-2020-president.csv'
+          : selectedOffice === 'SENATE'
+          ? '1976-2020-senate.csv'
+          : '1976-2022-house.csv';
+
+        const response = await fetch(`/${filename}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -31,7 +47,7 @@ function App() {
     };
 
     loadData();
-  }, []);
+  }, [selectedOffice]);
 
   if (loading) {
     return (
@@ -61,7 +77,12 @@ function App() {
   }
 
   const availableYears = [...new Set(electionData.map(d => d.year))].sort();
-  const yearData = electionData.filter(d => d.year === selectedYear);
+  let yearData = electionData.filter(d => d.year === selectedYear);
+  
+  // Filter data based on selected office and state for House elections
+  if (selectedOffice === 'HOUSE' && selectedState) {
+    yearData = yearData.filter(d => d.state_po === selectedState);
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 text-white py-8">
@@ -73,29 +94,53 @@ function App() {
             <StarIcon className="text-red-500" size={32} />
           </h1>
           <p className="text-gray-400 text-sm max-w-2xl mx-auto">
-            Interactive visualization of presidential election results from 1976 to 2020. 
-            Click on states to view detailed results, including vote counts and percentages. 
-            States are colored based on party victory margin.
+            Interactive visualization of {selectedOffice.toLowerCase()} election results from 1976 to {
+              selectedOffice === 'HOUSE' ? '2022' : '2020'
+            }. 
+            {selectedOffice === 'HOUSE' ? (
+              <>
+                <span className="text-yellow-500 font-semibold"> [Work in Progress] </span>
+                Select a state to view its congressional districts.
+              </>
+            ) : ' Click on states to view detailed results.'}
           </p>
         </div>
         
-        <YearSelector 
-          selectedYear={selectedYear} 
-          onYearChange={setSelectedYear} 
-          availableYears={availableYears}
-        />
+        <div className="flex items-center justify-center space-x-2">
+          <YearSelector 
+            selectedYear={selectedYear} 
+            onYearChange={setSelectedYear} 
+            availableYears={availableYears}
+          />
+          <OfficeSelector
+            selectedOffice={selectedOffice}
+            onOfficeChange={setSelectedOffice}
+          />
+          {selectedOffice === 'HOUSE' && (
+            <StateSelector
+              selectedState={selectedState}
+              onStateChange={setSelectedState}
+            />
+          )}
+        </div>
         
         <div className="mt-6 space-y-6">
           <div className="bg-gray-900 rounded-lg shadow-2xl overflow-hidden">
             <ElectionMap 
               data={yearData} 
               year={selectedYear}
+              office={selectedOffice}
+              onStateSelect={setSelectedState}
+              focusedState={selectedOffice === 'HOUSE' ? selectedState : null}
             />
             <Legend />
           </div>
           
           <div className="bg-gray-900 rounded-lg shadow-2xl overflow-hidden">
-            <ResultsTable data={yearData} />
+            <ResultsTable 
+              data={yearData}
+              office={selectedOffice}
+            />
           </div>
         </div>
       </div>
