@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import ElectionsApp from './pages/ElectionsApp';
@@ -8,6 +8,11 @@ import NotFound from './pages/NotFound';
 import Navbar from './components/Navbar';
 
 function App() {
+  // Set document title for the browser tab
+  useEffect(() => {
+    document.title = "US Data Explorer";
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <Navbar />

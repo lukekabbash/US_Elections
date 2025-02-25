@@ -1,8 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import StarIcon from '../components/StarIcon';
 
 const HomePage = () => {
+  // Set specific title for the homepage
+  useEffect(() => {
+    document.title = "US Data Explorer | Interactive Data Visualizations";
+  }, []);
+
   return (
     <div>
       {/* Header */}
@@ -30,12 +35,9 @@ const HomePage = () => {
         {/* Hero Section */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center mb-4">
-            <StarIcon className="text-blue-500" size={32} />
-            <div className="mx-4">
-              <h1 className="text-4xl md:text-5xl font-bold text-white">US Data Explorer</h1>
-              <p className="text-gray-400 text-lg">data.lukekabbash.com</p>
-            </div>
-            <StarIcon className="text-red-500" size={32} />
+            <StarIcon className="text-blue-500" size={48} />
+            <h1 className="text-4xl md:text-5xl font-bold text-white mx-6">US Data Explorer</h1>
+            <StarIcon className="text-red-500" size={48} />
           </div>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             An interactive platform for exploring and visualizing various US government datasets

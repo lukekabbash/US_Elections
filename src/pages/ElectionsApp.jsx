@@ -28,6 +28,11 @@ const ElectionsApp = () => {
     'map'
   );
 
+  // Set the document title for this section
+  useEffect(() => {
+    document.title = "US Data Explorer | Elections";
+  }, []);
+
   // Update URL when selections change
   useEffect(() => {
     // Skip URL update if we're on a specific chart or trend view

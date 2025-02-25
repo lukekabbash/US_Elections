@@ -15,6 +15,11 @@ const EVPropulsionApp = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Set the document title for this section
+  useEffect(() => {
+    document.title = "US Data Explorer | EV Data";
+  }, []);
+
   // Update URL when view changes
   useEffect(() => {
     if (activeView && activeView !== view) {
