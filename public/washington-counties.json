@@ -1,0 +1,185 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "King"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-122.5, 47.5],
+            [-121.8, 47.5],
+            [-121.8, 47.8],
+            [-122.5, 47.8],
+            [-122.5, 47.5]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Pierce"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-122.5, 47.1],
+            [-121.8, 47.1],
+            [-121.8, 47.5],
+            [-122.5, 47.5],
+            [-122.5, 47.1]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Snohomish"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-122.5, 47.8],
+            [-121.5, 47.8],
+            [-121.5, 48.2],
+            [-122.5, 48.2],
+            [-122.5, 47.8]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Spokane"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-117.7, 47.4],
+            [-117.0, 47.4],
+            [-117.0, 47.9],
+            [-117.7, 47.9],
+            [-117.7, 47.4]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Thurston"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-123.0, 46.8],
+            [-122.5, 46.8],
+            [-122.5, 47.1],
+            [-123.0, 47.1],
+            [-123.0, 46.8]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Clark"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-122.7, 45.6],
+            [-122.2, 45.6],
+            [-122.2, 46.0],
+            [-122.7, 46.0],
+            [-122.7, 45.6]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Kitsap"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-122.7, 47.5],
+            [-122.5, 47.5],
+            [-122.5, 47.8],
+            [-122.7, 47.8],
+            [-122.7, 47.5]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Whatcom"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-122.5, 48.7],
+            [-121.5, 48.7],
+            [-121.5, 49.0],
+            [-122.5, 49.0],
+            [-122.5, 48.7]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Skagit"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-122.5, 48.2],
+            [-121.5, 48.2],
+            [-121.5, 48.7],
+            [-122.5, 48.7],
+            [-122.5, 48.2]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Yakima"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-121.0, 46.3],
+            [-120.0, 46.3],
+            [-120.0, 47.0],
+            [-121.0, 47.0],
+            [-121.0, 46.3]
+          ]
+        ]
+      }
+    }
+  ]
+} 

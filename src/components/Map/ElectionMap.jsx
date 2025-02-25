@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   ComposableMap,
   Geographies,
   Geography,
   ZoomableGroup,
+  Annotation,
 } from 'react-simple-maps';
 import { getPartyColor } from '../../utils/dataUtils';
 
@@ -88,6 +89,8 @@ const STATE_SCALES = {
 const ElectionMap = ({ data, year, office, onStateSelect, focusedState }) => {
   const [selectedState, setSelectedState] = useState(null);
   const [selectedDistrict, setSelectedDistrict] = useState(null);
+  const [hoverInfo, setHoverInfo] = useState(null);
+  const mapRef = useRef(null);
 
   const stateResults = useMemo(() => {
     console.log('Starting data processing with:', {
@@ -239,6 +242,15 @@ const ElectionMap = ({ data, year, office, onStateSelect, focusedState }) => {
     return results;
   }, [data, office]);
 
+  // Calculate district centers for labels
+  const districtCenters = useMemo(() => {
+    const centers = {};
+    if (office === 'HOUSE' && focusedState) {
+      // We'll populate this when processing the geographies
+    }
+    return centers;
+  }, [office, focusedState]);
+
   const handleStateClick = (stateCode, result) => {
     if (office === 'HOUSE') {
       onStateSelect?.(stateCode);
@@ -274,7 +286,7 @@ const ElectionMap = ({ data, year, office, onStateSelect, focusedState }) => {
   }, [office, focusedState]);
 
   return (
-    <div className="relative w-full h-[600px] bg-gray-900 rounded-lg p-4 overflow-hidden">
+    <div className="relative w-full h-[600px] bg-gray-900 rounded-lg p-4 overflow-hidden" ref={mapRef}>
       {/* Map container with transition and scaling */}
       <div className={`absolute inset-0 transition-all duration-300 ease-in-out ${
         (selectedState || selectedDistrict) ? 'right-80 left-4' : 'right-4 left-4'
@@ -347,6 +359,18 @@ const ElectionMap = ({ data, year, office, onStateSelect, focusedState }) => {
                         },
                       }}
                       onClick={() => handleStateClick(stateCode, result)}
+                      onMouseEnter={() => {
+                        if (result) {
+                          setHoverInfo({
+                            stateCode,
+                            stateName: result.state,
+                            winner: result.winner,
+                            demPercent: result.demPercent,
+                            repPercent: result.repPercent
+                          });
+                        }
+                      }}
+                      onMouseLeave={() => setHoverInfo(null)}
                     />
                   );
                 })
@@ -356,8 +380,11 @@ const ElectionMap = ({ data, year, office, onStateSelect, focusedState }) => {
             {/* Congressional districts layer */}
             {office === 'HOUSE' && focusedState && (
               <Geographies geography={districtUrl}>
-                {({ geographies }) => 
-                  geographies.map(geo => {
+                {({ geographies }) => {
+                  // Calculate district centers for labels
+                  const districtCenters = {};
+                  
+                  return geographies.map(geo => {
                     const stateName = geo.properties.STATENAME;
                     const stateCode = STATE_NAMES[stateName?.toUpperCase()];
                     // Convert CD116FP to simple district number by removing leading zeros
@@ -365,6 +392,31 @@ const ElectionMap = ({ data, year, office, onStateSelect, focusedState }) => {
                     
                     // Only show districts for the selected state
                     if (!stateCode || stateCode !== focusedState) return null;
+
+                    // Calculate district center for label
+                    if (!districtCenters[`${stateCode}-${districtNum}`]) {
+                      try {
+                        const bounds = geo.geometry.coordinates[0].reduce(
+                          (acc, coord) => {
+                            return {
+                              minX: Math.min(acc.minX, coord[0]),
+                              minY: Math.min(acc.minY, coord[1]),
+                              maxX: Math.max(acc.maxX, coord[0]),
+                              maxY: Math.max(acc.maxY, coord[1])
+                            };
+                          },
+                          { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity }
+                        );
+                        
+                        districtCenters[`${stateCode}-${districtNum}`] = [
+                          (bounds.minX + bounds.maxX) / 2,
+                          (bounds.minY + bounds.maxY) / 2
+                        ];
+                      } catch (e) {
+                        // Fallback if we can't calculate center
+                        districtCenters[`${stateCode}-${districtNum}`] = [0, 0];
+                      }
+                    }
 
                     const key = `${stateCode}-${districtNum}`;
                     const result = districtResults[key];
@@ -394,15 +446,130 @@ const ElectionMap = ({ data, year, office, onStateSelect, focusedState }) => {
                           },
                         }}
                         onClick={() => handleDistrictClick(stateCode, districtNum, result)}
+                        onMouseEnter={() => {
+                          if (result) {
+                            setHoverInfo({
+                              stateCode,
+                              stateName: result.state,
+                              district: districtNum,
+                              winner: result.winner,
+                              demPercent: result.demPercent,
+                              repPercent: result.repPercent
+                            });
+                          }
+                        }}
+                        onMouseLeave={() => setHoverInfo(null)}
                       />
                     );
-                  })
-                }
+                  });
+                }}
+              </Geographies>
+            )}
+
+            {/* District labels */}
+            {office === 'HOUSE' && focusedState && (
+              <Geographies geography={districtUrl}>
+                {({ geographies }) => {
+                  // Get unique districts and their centers
+                  const districtCenters = {};
+                  
+                  geographies.forEach(geo => {
+                    const stateName = geo.properties.STATENAME;
+                    const stateCode = STATE_NAMES[stateName?.toUpperCase()];
+                    const districtNum = parseInt(geo.properties.CD116FP || '0', 10).toString();
+                    
+                    if (stateCode !== focusedState) return;
+                    
+                    const key = `${stateCode}-${districtNum}`;
+                    if (districtCenters[key]) return;
+                    
+                    try {
+                      // Simple centroid calculation
+                      if (geo.geometry.type === "Polygon") {
+                        const coords = geo.geometry.coordinates[0];
+                        const centroid = coords.reduce(
+                          (acc, coord) => [acc[0] + coord[0], acc[1] + coord[1]],
+                          [0, 0]
+                        );
+                        districtCenters[key] = [
+                          centroid[0] / coords.length,
+                          centroid[1] / coords.length
+                        ];
+                      }
+                    } catch (e) {
+                      console.error("Error calculating district center", e);
+                    }
+                  });
+                  
+                  return Object.entries(districtCenters).map(([key, center]) => {
+                    const [stateCode, districtNum] = key.split('-');
+                    if (!center[0] || !center[1]) return null;
+                    
+                    return (
+                      <Annotation
+                        key={key}
+                        subject={center}
+                        dx={0}
+                        dy={0}
+                        connectorProps={{}}
+                      >
+                        <text
+                          x={0}
+                          y={0}
+                          fontSize={10}
+                          textAnchor="middle"
+                          alignmentBaseline="middle"
+                          fill="#fff"
+                          stroke="#000"
+                          strokeWidth={0.5}
+                          style={{ pointerEvents: "none" }}
+                        >
+                          {districtNum === "0" ? "AL" : districtNum}
+                        </text>
+                      </Annotation>
+                    );
+                  });
+                }}
               </Geographies>
             )}
           </ZoomableGroup>
         </ComposableMap>
       </div>
+
+      {/* Hover tooltip - fixed position */}
+      {hoverInfo && (
+        <div 
+          className="absolute bg-black bg-opacity-80 text-white p-3 rounded pointer-events-none z-10 shadow-lg border border-gray-700"
+          style={{ 
+            top: "20px",
+            right: selectedState || selectedDistrict ? "340px" : "20px",
+            width: "220px"
+          }}
+        >
+          <div className="font-bold">
+            {hoverInfo.stateName}
+            {hoverInfo.district && (
+              <span className="ml-1">
+                {hoverInfo.district === "0" ? " (At-Large)" : ` - District ${hoverInfo.district}`}
+              </span>
+            )}
+          </div>
+          {hoverInfo.winner && (
+            <>
+              <div className="text-sm mt-1">
+                Winner: <span className="font-medium">{hoverInfo.winner.name}</span>
+              </div>
+              <div className="text-xs text-gray-300 mt-1">
+                {hoverInfo.winner.party}: {hoverInfo.winner.percentage}%
+              </div>
+              <div className="flex justify-between text-xs mt-2">
+                <span className="text-blue-400">Dem: {hoverInfo.demPercent}%</span>
+                <span className="text-red-400">Rep: {hoverInfo.repPercent}%</span>
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Sliding Sidebar */}
       <div 
@@ -462,7 +629,7 @@ const ElectionMap = ({ data, year, office, onStateSelect, focusedState }) => {
                     .map((candidate, idx) => (
                       <div key={idx} className="bg-gray-800 bg-opacity-50 rounded-lg p-3">
                         <div className="flex justify-between text-sm mb-2">
-                          <span className="font-medium">
+                          <span className="font-medium truncate max-w-[70%]">
                             {candidate.name}
                           </span>
                           <span className="text-gray-400">{candidate.percentage}%</span>
