@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import HomePage from './pages/HomePage';
 import ElectionsApp from './pages/ElectionsApp';
 import EVPropulsionApp from './pages/EVPropulsionApp';
@@ -42,6 +43,7 @@ function App() {
         {/* 404 Route */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <Analytics />
     </div>
   );
 }
